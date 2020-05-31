@@ -1,3 +1,5 @@
+" ------------------------- Start Plug Install ------------------------------
+"  {{
 call plug#begin('~/.local/share/nvim/plugged')
 
 " Plug 'neovim/nvim-lsp'
@@ -7,40 +9,17 @@ Plug 'patstockwell/vim-monokai-tasty'
 " Airline
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-
+Plug 'preservim/nerdcommenter'
+" Autosave files on certain events
+Plug '907th/vim-auto-save'
 call plug#end()
+" }}
+" ------------------------- End Plug Install --------------------------------
 
-" ------------------------
-" External plug install settings
+" ------------------------ Start External plug install settings -------------
 
-" Airline ------------------------------
-" let fancy_symbols_enabled = 0
-" let g:airline_powerline_fonts = 0
-" let g:airline_theme = 'bubblegum'
-" let g:airline#extensions#whitespace#enabled = 0
-" 
-" " Fancy Symbols!!
-" 
-" if fancy_symbols_enabled
-"     let g:webdevicons_enable = 1
-" 
-"     " custom airline symbols
-"     if !exists('g:airline_symbols')
-"        let g:airline_symbols = {}
-"     endif
-"     let g:airline_left_sep = ''
-"     let g:airline_left_alt_sep = ''
-"     let g:airline_right_sep = ''
-"     let g:airline_right_alt_sep = ''
-"     let g:airline_symbols.branch = '⎇'
-"     let g:airline_symbols.readonly = ''
-"     let g:airline_symbols.linenr = '⭡'
-" else
-"     let g:webdevicons_enable = 0
-" endif
-
-" New airline settings
-" Set airline theme to a random one if it exists
+" {{ Airline settings
+" Set airline theme
 let s:candidate_airlinetheme = ['ayu_mirage', 'base16_flat',
     \ 'base16_grayscale', 'lucius', 'hybridline', 'ayu_dark',
     \ 'base16_adwaita', 'biogoo', 'distinguished', 'jellybeans',
@@ -83,9 +62,84 @@ let g:airline#extensions#hunks#non_zero_only = 1
 
 " Speed up airline
 let g:airline_highlighting_cache = 1
+" End Airline settings }}
 
-" End custom settings
-" ---------------------------------
+
+" {{ Auto save settings 
+" Enable autosave on nvim startup
+let g:auto_save = 1
+
+" A list of events to trigger autosave
+let g:auto_save_events = ['InsertLeave', 'TextChanged']
+" let g:auto_save_events = ['InsertLeave']
+
+" Show autosave status on command line
+let g:auto_save_silent = 0
+" }} End auto save settings
+
+" ------------------------ End External Plug Install settings --------------------------------
+"
+"
+"  ----------------------- Auto command -------------------------------
+" More accurate syntax highlighting? (see `:h syn-sync`)
+augroup accurate_syn_highlight
+    autocmd!
+    autocmd BufEnter * :syntax sync fromstart
+augroup END
+
+" Return to last edit position when opening a file
+augroup resume_edit_position
+    autocmd!
+    autocmd BufReadPost *
+        \ if line("'\"") > 1 && line("'\"") <= line("$") && &ft !~# 'commit'
+        \ | execute "normal! g`\"zvzz"
+        \ | endif
+augroup END
+
+" Display a message when the current file is not in utf-8 format.
+" Note that we need to use `unsilent` command here because of this issue:
+" https://github.com/vim/vim/issues/4379
+augroup non_utf8_file_warn
+    autocmd!
+    autocmd BufRead * if &fileencoding != 'utf-8'
+                \ | unsilent echomsg 'File not in UTF-8 format!' | endif
+augroup END
+
+" Automatically reload the file if it is changed outside of Nvim, see
+" https://unix.stackexchange.com/a/383044/221410. It seems that `checktime`
+" command does not work in command line. We need to check if we are in command
+" line before executing this command. See also
+" https://vi.stackexchange.com/a/20397/15292.
+augroup auto_read
+    autocmd!
+    autocmd FocusGained,BufEnter,CursorHold,CursorHoldI *
+                \ if mode() == 'n' && getcmdwintype() == '' | checktime | endif
+    autocmd FileChangedShellPost * echohl WarningMsg
+                \ | echo "File changed on disk. Buffer reloaded!" | echohl None
+augroup END
+
+"  ----------------------- End auto command ---------------------------
+"
+"
+"  ----------------------- Start options settings ----------------------
+
+" Clipboard settings, always use clipboard for all delete, yank, change, put
+" operation, see https://stackoverflow.com/q/30691466/6064933
+if !empty(provider#clipboard#Executable())
+    set clipboard+=unnamedplus
+endif
+
+" Ignore certain files and folders when globbing
+set wildignore+=*.o,*.obj,*.bin,*.dll,*.exe
+set wildignore+=*/.git/*,*/.svn/*,*/__pycache__/*,*/build/**
+set wildignore+=*.pyc
+set wildignore+=*.DS_Store
+set wildignore+=*.aux,*.bbl,*.blg,*.brf,*.fls,*.fdb_latexmk,*.synctex.gz
+
+"  ----------------------- End options settings -------------------------
+"  ----------------------- Set mapleader -------------------------------
+let mapleader=","
+"  ----------------------- End set mapleader ---------------------------
 
 " TextEdit might fail if hidden is not set.
 set hidden
@@ -96,6 +150,10 @@ set number relativenumber
 " Set auto completion color
 highlight Pmenu ctermbg=black ctermfg=white guibg=gray
 highlight PmenuSel ctermfg=yellow guibg=gray
+
+" Set highlight current line
+set cursorline
+highlight CursorLine cterm=NONE ctermbg=black
 
 " Some servers have issues with backup files, see #649.
 set nobackup
