@@ -44,10 +44,11 @@ endif
 set hidden
 
 " Set show line number
-set nu
+set number relativenumber
 
 " Set auto completion color
-highlight Pmenu ctermbg=gray guibg=gray
+highlight Pmenu ctermbg=black ctermfg=white guibg=gray
+highlight PmenuSel ctermfg=yellow guibg=gray
 
 " Some servers have issues with backup files, see #649.
 set nobackup
